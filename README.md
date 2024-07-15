@@ -1,0 +1,1 @@
+# KQL_Queries_AdvancedHunting
