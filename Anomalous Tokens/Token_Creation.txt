@@ -1,0 +1,4 @@
+union SigninLogs, AADNonInteractiveUserSignInLogs, AADServicePrincipalSignInLogs, AADManagedIdentitySignInLogs
+| where TimeGenerated >= ago(7d)
+| summarize count() by (TokenIssuerType), bin(TimeGenerated, 12h)
+| render timechart
