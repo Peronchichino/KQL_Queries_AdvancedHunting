@@ -1,0 +1,11 @@
+//assignment of new role and first time usage
+
+AuditLogs
+| where OperationName == "Add member to role"
+or OperationName == "Elevate access to a resource"
+| where Result == "success"
+and TimeGenerated >= ago(1d)
+| extend upn = tostring(parse_json(tostring(TargetResources[0].userPrincipalName)))
+| extend role = tostring(parse_json(tostring(TargetResources[0].modifiedProperties[1].newValue)))
+| extend roleId = tostring(parse_json(tostring(TargetResources[1].id)))
+| project TimeGenerated, upn, role, roleId, OperationName, Result, Identity, ActivityDateTime
