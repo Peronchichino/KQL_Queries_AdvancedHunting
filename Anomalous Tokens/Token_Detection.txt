@@ -1,0 +1,13 @@
+let alerts=
+    SecurityAlert
+    | where TimeGenerated > ago(1d)
+    | where AlertName == "Anomalous Token"
+    | mv-expand todynamic(Entities)
+    | project Entities
+    | extend RequestId = tostring(Entities.SessionId)
+    | distinct RequestId;
+//Detections can be offline so retrieve a weeks worth of risk data
+AADUserRiskEvents
+| where TimeGenerated > ago(7d)
+| where RequestId in (alerts)
+| project TimeGenerated, UserPrincipalName, RiskEventType, RiskLevel, DetectionTimingType, IpAddress, Location
