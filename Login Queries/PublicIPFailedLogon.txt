@@ -1,0 +1,16 @@
+//Look for public the IP addresses of devices that failed to logon multiple times, using multiple accounts, and eventually succeeded. 
+
+DeviceLogonEvents 
+| where isnotempty(RemoteIP)  
+    and AccountName !endswith "$" 
+    and RemoteIPType == "Public" 
+| extend Account=strcat(AccountDomain, "\\", AccountName) 
+| summarize  
+    Successful=countif(ActionType == "LogonSuccess"), 
+    Failed = countif(ActionType == "LogonFailed"), 
+    FailedAccountsCount = dcountif(Account, ActionType == "LogonFailed"), 
+    SuccessfulAccountsCount = dcountif(Account, ActionType == "LogonSuccess"), 
+    FailedAccounts = makeset(iff(ActionType == "LogonFailed", Account, ""), 5), 
+    SuccessfulAccounts = makeset(iff(ActionType == "LogonSuccess", Account, ""), 5) 
+    by DeviceName, RemoteIP, RemoteIPType 
+| where Failed > 10 and Successful > 0 and FailedAccountsCount > 2 and SuccessfulAccountsCount == 1 
