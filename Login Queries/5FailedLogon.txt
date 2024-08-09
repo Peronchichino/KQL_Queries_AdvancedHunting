@@ -1,0 +1,8 @@
+//accounts that had 5 or more failed login attempts in the last 24 hours
+
+SecurityEvent
+| where TimeGenerated >= ago(24h)
+| where EventID == 4625
+| summarize FailedLoginCount = count() by AccountName
+| where FailedLoginCount >= 5
+| project AccountName, FailedLoginCount
