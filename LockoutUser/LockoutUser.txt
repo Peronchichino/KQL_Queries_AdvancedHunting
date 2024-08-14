@@ -1,0 +1,3 @@
+AADDomainServicesAccountManagement
+| where TimeGenerated >= ago(30d)
+| where OperationName has "4740"
