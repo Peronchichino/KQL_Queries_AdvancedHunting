@@ -1,0 +1,4 @@
+SecurityEvent
+| where EventID == 4740 or EventID == 644
+| extend LowerAccount=tolower(Account)
+| search "username"
