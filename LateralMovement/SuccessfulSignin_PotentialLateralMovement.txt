@@ -1,0 +1,13 @@
+//see if any devices experience weird/suspicious signins that could have potential lateral movement w/ip, only successful ones and where device information is not empty
+
+SigninLogs
+| where RiskEventTypes_V2 contains "un" or RiskEventTypes_V2 contains "IP" or RiskEventTypes_V2 contains "leak"
+| where ResultType == 0 //successful sign in
+| where DeviceDetail != ""
+| join kind=inner (AuditLogs
+    | where OperationName contains "sign"
+    | summarize FailedAttempts = count() by Id, AADTenantId, ActivityDisplayName, ActivityDateTime
+    | where FailedAttempts >= 5
+    )
+    on Id
+| project Id, TimeGenerated, UserId, UserDisplayName, IPAddress, ResultType, RiskLevel, AppDisplayName, FailedAttempts, RiskEventTypes, RiskEventTypes_V2
