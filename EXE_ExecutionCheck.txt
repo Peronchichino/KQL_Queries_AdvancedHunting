@@ -1,0 +1,16 @@
+//checks all .exe calls of all devices in the past 24h with folderpath and device IP to see whether or not device is outside known/registerd networks
+
+let numDays = 7d;
+let devi = "xx"; //add device name from AAD
+let process = ".exe";
+DeviceProcessEvents
+| where InitiatingProcessParentFileName has process and InitiatingProcessCommandLine != "services.exe"
+| where DeviceName == devi
+| where Timestamp <= ago(numDays)
+| join kind=inner ( DeviceNetworkEvents
+    | where InitiatingProcessFileName has process
+    )
+on DeviceName
+| order by Timestamp desc
+| project Timestamp, DeviceName, DeviceId, ActionType, FileSize, 
+    FolderPath, InitiatingProcessCommandLine, ProcessVersionInfoInternalFileName, RemoteIP, RemotePort, LocalIP, LocalPort
