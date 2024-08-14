@@ -1,0 +1,17 @@
+//Look for machines failing to log-on to multiple machines or using multiple accounts 
+
+DeviceLogonEvents 
+| where isnotempty(RemoteDeviceName) 
+| extend Account=strcat(AccountDomain, "\\", AccountName) 
+| summarize  
+    Successful=countif(ActionType == "LogonSuccess"), 
+    Failed = countif(ActionType == "LogonFailed"), 
+    FailedAccountsCount = dcountif(Account, ActionType == "LogonFailed"), 
+    SuccessfulAccountsCount = dcountif(Account, ActionType == "LogonSuccess"), 
+    FailedComputerCount = dcountif(DeviceName, ActionType == "LogonFailed"), 
+    SuccessfulComputerCount = dcountif(DeviceName, ActionType == "LogonSuccess") 
+    by RemoteDeviceName 
+| where 
+    Successful > 0 and 
+    ((FailedComputerCount > 100 and FailedComputerCount > SuccessfulComputerCount) or 
+        (FailedAccountsCount > 100 and FailedAccountsCount > SuccessfulAccountsCount)) 
