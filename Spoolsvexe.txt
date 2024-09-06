@@ -1,0 +1,22 @@
+//at home printing jobs or better said exclude IPs to show ones outside of offices
+//shows printing jobs done outside of specific accessible networks
+//useful when you want to see which people in the org are printing from home using company devices
+
+//need to know what networks office printers are in
+
+let targetProcess = "spoolsv.exe";
+let numDays = 7d; //90 days
+let excludedIPs = dynamic ( [ "x.x.x.x", "x.x.x.x", "x.x.x.x"] ); //all ip addresses to be excluded in search (we only want private home stuff)
+DeviceProcessEvents
+| where InitiatingProcessParentFileName has "spoolsv.exe" or FileName == targetProcess
+| where DeviceName == DeviceName
+| where Timestamp >= ago(numDays)
+| project Timestamp, DeviceId, DeviceName, ActionType, FileSize, ProcessVersionInfoProductName, ProcessVersionInfoInternalFileName, ProcessId, InitiatingProcessId
+| join kind=inner ( DeviceNetworkEvents
+    | where InitiatingProcessFileName has "spoolsv.exe"
+    | where DeviceName == DeviceName
+    | project Timestamp, DeviceId, DeviceName, ActionType, RemoteIP, RemotePort, RemoteUrl, RemoteIPType, LocalIP, LocalPort, LocalIPType, Protocol, InitiatingProcessId, InitiatingProcessCommandLine, ReportId)
+on DeviceName
+| where not( tostring( RemoteIP) in~ (excludedIPs))
+//| order by Timestamp
+| order by RemoteIP
