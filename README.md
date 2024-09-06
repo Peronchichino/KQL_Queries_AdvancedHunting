@@ -6,9 +6,9 @@ Topics:
 - Password resets
 - MFA
 - Device specific events
+- spoolsv.exe
 
 To-Be-Added:
-- spoolsv.exe
 - phishing file extension
 - Azure job creation
 - New user in admin group -> PIM
