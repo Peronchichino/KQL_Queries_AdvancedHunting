@@ -7,10 +7,10 @@ Topics:
 - MFA
 - Device specific events
 - spoolsv.exe
-
-To-Be-Added:
-- phishing file extension
-- Azure job creation
 - New user in admin group -> PIM
 - Malicious HTTP Traffic -> HTTP Traffic
+- phishing file extension
+
+To-Be-Added:
+- Azure job creation
 - Anomalous AAD Account Creation
