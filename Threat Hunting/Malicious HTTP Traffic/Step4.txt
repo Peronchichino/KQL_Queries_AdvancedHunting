@@ -1,0 +1,20 @@
+let SuspiciousDownloadName = 'xxxxx.exe'; //change to specific file found in previous steps
+DeviceFileEvents
+| where FileName == SuspiciousDownloadName
+| summarize
+     arg_max(Timestamp, *),
+     DeviceList = make_set(DeviceName),
+     FileLocations = make_set(FolderPath)
+     by SHA1
+| invoke FileProfile(SHA1, 1000)
+| project-reorder
+     Timestamp,
+     SHA1,
+     GlobalPrevalence, //number of instances of entity observed by Microsoft, more instances = more likely benign aka much bad
+     GlobalFirstSeen,
+     Signer,
+     ThreatName,
+     DeviceList,
+     FileLocations
+
+//doc: https://docs.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-fileprofile-function?view=o365-worldwide
