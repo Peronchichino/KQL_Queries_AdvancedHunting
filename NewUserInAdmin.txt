@@ -1,7 +1,0 @@
-
-AuditLogs
-| where OperationName has "add member to group"
-| where TimeGenerated >= ago(7d)
-| extend group = tostring(parse_json(tostring(InitiatedBy.app)).displayName)
-| extend user = tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)
-| project TimeGenerated, OperationName, Category, group, user, InitiatedBy
