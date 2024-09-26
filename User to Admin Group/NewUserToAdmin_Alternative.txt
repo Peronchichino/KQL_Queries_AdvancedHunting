@@ -1,0 +1,5 @@
+OfficeActivity
+| where Operation == "AddedToGroup"
+and ModifiedProperties contains "adm"
+| where TimeGenerated >= ago(7d)
+| project TimeGenerated, Operation, UserId, Site_Url,  Event_Data, TargetUserOrGroupName, TargetUserOrGroupType
