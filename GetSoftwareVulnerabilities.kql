@@ -1,9 +1,15 @@
+let WidespreadSoftware = DeviceTvmSoftwareInventory
+    | where OSPlatform == "Windows11"
+    | summarize cnt_client = dcount(DeviceId) by SoftwareName, SoftwareVendor
+    | where cnt_client > 100
+    | project SoftwareName;
 DeviceTvmSoftwareVulnerabilities
-| where OSPlatform == "" //choose OS
-| where DeviceName contains "" //filter for specific device groups if multi tenant org
+| where OSPlatform == ""
+| where DeviceName contains ""
+| where SoftwareName in (WidespreadSoftware)
 | join kind=inner (DeviceTvmSoftwareInventory) on DeviceId, SoftwareName, SoftwareVersion
 | join kind=inner (DeviceTvmSoftwareVulnerabilitiesKB) on CveId
-| join kind=inner (DeviceTvmSoftwareEvidenceBeta) on SoftwareName, SoftwareVendor, SoftwareVersion, DeviceId
+| join kind=leftouter (DeviceTvmSoftwareEvidenceBeta) on SoftwareName, SoftwareVendor, SoftwareVersion, DeviceId
 | extend VulAgeDays = datetime_diff('day', now(), PublishedDate)
 | extend SLADays = case(
     VulnerabilitySeverityLevel == "Critical", 7,
@@ -13,6 +19,7 @@ DeviceTvmSoftwareVulnerabilities
 | extend DueDate = PublishedDate + totimespan(SLADays *1d)
 | extend OverdueDays = datetime_diff('day', now(), DueDate)
 | extend Status = iff(OverdueDays > 0, "Overdue", "In-Flight")
+| where Status == "Overdue"
 | project 
     DeviceId,
     DeviceName,
@@ -22,11 +29,11 @@ DeviceTvmSoftwareVulnerabilities
     SoftwareName,
     SoftwareVersion,
     CveId,
-    tostring(RegistryPaths),
+    //RegistryPaths,
     VulnerabilitySeverityLevel,
     VulAgeDays,
     DueDate,
     OverdueDays,
     Status
 | distinct *
-| order by SoftwareName
+| order by DeviceName
