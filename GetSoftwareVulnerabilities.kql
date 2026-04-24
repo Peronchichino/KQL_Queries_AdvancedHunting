@@ -3,10 +3,12 @@ let WidespreadSoftware = DeviceTvmSoftwareInventory
     | summarize cnt_client = dcount(DeviceId) by SoftwareName, SoftwareVendor
     | where cnt_client > 100
     | project SoftwareName;
+let TargetSoftware = "chrome";
 DeviceTvmSoftwareVulnerabilities
-| where OSPlatform == ""
-| where DeviceName contains ""
+| where OSPlatform == "Windows11"
+| where DeviceName contains "rwbi"
 | where SoftwareName in (WidespreadSoftware)
+| where SoftwareName contains TargetSoftware
 | join kind=inner (DeviceTvmSoftwareInventory) on DeviceId, SoftwareName, SoftwareVersion
 | join kind=inner (DeviceTvmSoftwareVulnerabilitiesKB) on CveId
 | join kind=leftouter (DeviceTvmSoftwareEvidenceBeta) on SoftwareName, SoftwareVendor, SoftwareVersion, DeviceId
@@ -29,11 +31,10 @@ DeviceTvmSoftwareVulnerabilities
     SoftwareName,
     SoftwareVersion,
     CveId,
-    //RegistryPaths,
     VulnerabilitySeverityLevel,
-    VulAgeDays,
-    DueDate,
-    OverdueDays,
-    Status
+    //VulAgeDays,
+    //DueDate,
+    OverdueDays
+    //Status
 | distinct *
-| order by DeviceName
+| order by CveId
