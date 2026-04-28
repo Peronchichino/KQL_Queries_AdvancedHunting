@@ -10,6 +10,7 @@ Topics:
 - New user in admin group -> PIM
 - Malicious HTTP Traffic -> HTTP Traffic
 - phishing file extension
+- Software vulnerability listing
 
 To-Be-Added:
 - Azure job creation
