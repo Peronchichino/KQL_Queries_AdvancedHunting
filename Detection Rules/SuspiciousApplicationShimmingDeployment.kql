@@ -1,0 +1,13 @@
+let timeframe = 1h;
+let enrichtime = 1d;
+DeviceRegistryEvents
+| where ingestion_time() >= ago(timeframe)
+| where ActionType == "RegistryValueSet"
+| where RegistryKey startswith @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\InstalledSDB\"
+| extend sdbinstExecutionSDBCommand = iff(InitiatingProcessFileName =~ "sdbinst.exe", InitiatingProcessCommandLine, "NULL")
+| where not (sdbinstExecutionSDBCommand has_any (@"c:\Program Files\", @"C:\Program Files (x86)\"))
+| join kind=leftouter (DeviceInfo | where Timestamp >= ago(enrichtime) | distinct DeviceId, MachineGroup, OSDistribution) on DeviceId
+//WL starts
+| where not (InitiatingProcessFileName =~ "NwSapSetup.exe") //SAP Front-End Setup for the Windows
+//WL ends
+| summarize ActivityCount = count(), FirstActivity = min(Timestamp), LastActivity = max(Timestamp), Commands = make_set(InitiatingProcessCommandLine), RegistryKeys = make_set(RegistryKey), RegistryValueDatas = make_set(RegistryValueData), arg_max(Timestamp, *) by DeviceId, DeviceName, InitiatingProcessAccountName
