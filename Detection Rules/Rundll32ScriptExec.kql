@@ -1,0 +1,11 @@
+let timeframe = 1h;
+let enrichtime = 1d;
+DeviceProcessEvents
+| where ingestion_time() >= ago(timeframe)
+| where ActionType == "ProcessCreated"
+| where FileName =~ "rundll32.exe"
+| where ProcessCommandLine has_any ("javascript:", "vbscript:")
+| join kind=leftouter (DeviceInfo | where Timestamp >= ago(enrichtime) | distinct DeviceId, MachineGroup, OSDistribution) on DeviceId
+//WL starts
+//WL ends
+| summarize ActivityCount = count(), FirstActivity = min(Timestamp), LastActivity = max(Timestamp), Commands = make_set(ProcessCommandLine), ParentCommands = make_set(InitiatingProcessCommandLine), GrandParents = make_set(InitiatingProcessParentFileName), arg_max(Timestamp, *) by DeviceId, DeviceName, AccountName
